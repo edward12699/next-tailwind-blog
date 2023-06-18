@@ -2,6 +2,8 @@ import Image from 'next/future/image'
 import Head from 'next/head'
 import Link from 'next/link'
 import clsx from 'clsx'
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 import { Button } from '@/components/Button'
 import { Card } from '@/components/Card'
@@ -195,9 +197,8 @@ function Resume() {
               <dt className="sr-only">Date</dt>
               <dd
                 className="ml-auto text-xs text-zinc-400 dark:text-zinc-500"
-                aria-label={`${role.start.label ?? role.start} until ${
-                  role.end.label ?? role.end
-                }`}
+                aria-label={`${role.start.label ?? role.start} until ${role.end.label ?? role.end
+                  }`}
               >
                 <time dateTime={role.start.dateTime ?? role.start}>
                   {role.start.label ?? role.start}
@@ -247,11 +248,16 @@ function Photos() {
 }
 
 export default function Home({ articles }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/articles');
+  }, []);
   return (
     <>
       <Head>
         <title>
-          Spencer Sharp - Software designer, founder, and amateur astronaut
+          Edward - Software designer, founder, and amateur astronaut
         </title>
         <meta
           name="description"
