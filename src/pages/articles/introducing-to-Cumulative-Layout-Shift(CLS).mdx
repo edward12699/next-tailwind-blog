@@ -1,0 +1,165 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+import WebVitals from '@/components/WebVitals'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-22',
+  title: 'introducing-to-Cumulative-Layout-Shift(CLS)',
+  description:
+    'Cumulative-Layout-Shift',
+}
+import Image from 'next/future/image'
+import image1 from '@/images/photos/cls-metric.png'
+import image2 from '@/images/photos/Impact-fraction.png'
+import image3 from '@/images/photos/Distance-fraction.png'
+import image4 from '@/images/photos/cls-score.png'
+import image5 from '@/images/photos/multi-cls.png'
+import image6 from '@/images/photos/web-vitals-screenshot.png'
+
+
+
+
+
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+## what‘s the problem？
+
+Have you ever been reading an article online when something suddenly changes on the page
+
+## how it happens
+
+Unexpected movement of page content usually happens because resources are loaded asynchronously or DOM elements get dynamically added to the page above existing content. 
+The culprit might be an image or video with unknown dimensions, a font that renders larger or smaller than its fallback, or a third-party ad or widget that dynamically resizes itself.
+
+What makes this issue even more problematic is that how a site functions in development is often quite different from how users experience it. 
+Personalized or third-party content often doesn't behave the same in development as it does in production, test images are often already in the developer's browser cache, and API calls that run locally are often so fast that the delay isn't noticeable.
+
+## what is CLS
+
+CLS is a measure of the largest burst of layout shift scores for every unexpected layout shift that occurs during the entire lifespan of a page.
+Layout shifts are defined by the Layout Instability API, which reports layout-shift entries any time an element that is visible within the viewport changes its start position (for example, its top and left position in the default writing mode) between two frames. Such elements are considered unstable elements.
+Note that layout shifts only occur when **existing elements** change their start position. If a new element is added to the DOM or an existing element changes size, it doesn't count as a layout shift—as long as the change doesn't cause other visible elements to change their start position.
+
+
+## what's the metric of CLS
+
+<Image
+      src={image1}
+      alt=""
+      className=""
+    />
+
+简述： <br/>
+计算长度为在一个页面的生命周期内（从加载到关闭） 
+采用session window 中取cls最大值的方式(session window就是一段时间内当前页面的快照)<br/>
+5s为一个session window的最大时长
+其中session gap采用了1s的时长，即若1s内的没有出现layout shift,可以算作当前session window的结束，当下一次layout shift
+出现的时候，算作新的session window的开始<br/>
+取各个session window 中偏移量总和的最大值计为cls的 final value
+>  https://web.dev/i18n/en/evolving-cls/
+
+`layout shift score = impact fraction * distance fraction`
+* impact fraction
+<Image
+      src={image2}
+      alt=""
+      className=""
+    />
+
+占据了全部屏幕的75% 所以impact fraction 是0.75
+impact fraction 中计算的屏幕区域可以用移动前后的两个部分重叠，取其叠加后形成的包含unstable 元素的最小区域来计算
+
+* distance fraction
+<Image
+      src={image3}
+      alt=""
+      className=""
+    />
+移动距离是25%, 所以distance fraction 是0.25
+so the layout shift score is 0.75 * 0.25 = 0.1875
+
+当有多个元素都在移动的时候，取其中最大值
+比如
+<Image
+      src={image5}
+      alt=""
+      className=""
+/>
+
+此时的impact fraction是0.6   distance fraction 取其中移动最大的'zebra' 大约为0.3
+so the layout shift score is 0.60 x 0.3 = 0.18
+
+
+<Image
+      src={image4}
+      alt=""
+      className=""
+    />
+
+需要把这个分数降到0.1以内
+
+
+另外：如果用户触发的cls 并不是一个坏的体验，因为这是用户预料之中的，
+Layout shifts that occur within 500 milliseconds of user input will have the hadRecentInput flag set（ only for discrete input events like tap, click, or keypress. ）, so they can be excluded from calculations.
+
+
+## transform property allows you to animate elements without triggering layout shifts:
+
+
+Instead of changing the height and width properties, use transform: scale().
+To move elements around, avoid changing the top, right, bottom, or left properties and use transform: translate() instead.
+
+transform: scale() 和translate 不管你缩放或者移动多少，在界面上占据的始终只是一倍的空间，不影响其他元素
+
+
+## 如何测量
+In most cases, the current CLS value at the time the page is being unloaded is the final CLS
+
+* Field tools 
+Chrome User Experience Report
+PageSpeed Insights
+Search Console (Core Web Vitals report)
+web-vitals JavaScript library
+* Lab tools 
+Chrome DevTools
+Lighthouse
+PageSpeed Insights
+WebPageTest
+
+* JavaScript
+建议使用web-vitals，因为它帮我们处理了很多复杂的场景，比如
+   1. 页面在后台加载，则不应该报告cls，因为对用户没有产生影响 (可利用visibilitychange event来感知)
+   2. 如果页面从cache中得到，cls 应该重制为0
+   3. iframe的情况 PerformanceObserver不会计算iframe的情况，但是iframe应该被考虑进来，因为它同样是页面以及用户体验的一部分
+   4. 一些额外的情况增加了cls的复杂度，比如一个页面从不关闭，则这个页面的生命周期很难界定,  或者是在某些手机端的操作系统中，浏览器通常不会为后台选项卡运行页面卸载回调，因此很难报告“最终”值
+```JavaScript
+import {onCLS} from 'web-vitals';
+
+// Measure and log CLS in all situations
+// where it needs to be reported.
+onCLS(console.log);
+```
+使用onCLS在控制台的结果类似如下：
+<Image
+      src={image6}
+      alt=""
+      className=""
+    />
+
+另：在react中使用onCLS的一点建议：
+* 没必要写入react组件内，毕竟只是在页面中注入这个onCLS,越早越好，建议注入在页面加载的地方
+* 如果有服务端渲染的，需要加上判断是在客户端内，`if (typeof window !== 'undefined') `
+* 结果会在你切tab的时候或者切换到后台的时候输出，似乎是把页面unactive作为一个截止的时机
+
+如果iframe的内容是跨域的，则web-vitals 也无法测量了
+
+
+## 最后的议题就是如何提高cls了
+/ 详见 https://web.dev/optimize-cls/
+
+
+## 拓展阅读
+
+1. Defining the Core Web Vitals metrics thresholds （https://web.dev/i18n/en/defining-core-web-vitals-thresholds/）
+2. Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS). 是3个测量页面性能的指标，同样需要掌握

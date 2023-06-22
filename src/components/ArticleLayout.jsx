@@ -1,9 +1,15 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import React, { useEffect } from 'react';
 
 import { Container } from '@/components/Container'
 import { formatDate } from '@/lib/formatDate'
 import { Prose } from '@/components/Prose'
+import { onCLS } from 'web-vitals';
+if (typeof window !== 'undefined') {
+  console.log(1)
+  onCLS(console.log);
+}
 
 function ArrowLeftIcon(props) {
   return (
@@ -24,7 +30,7 @@ export function ArticleLayout({
   isRssFeed = false,
   previousPathname,
 }) {
-  let router = useRouter()
+  let router = useRouter();
 
   if (isRssFeed) {
     return children

@@ -1,0 +1,40 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-21',
+  title: 'record-two-new-link-types',
+  description:
+    '两个比较少见的link type',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+```html
+   <link
+          rel="alternate"
+          type="application/rss+xml"
+          href={`${process.env.NEXT_PUBLIC_SITE_URL}/rss/feed.xml`}
+        />
+        <link
+          rel="alternate"
+          type="application/feed+json"
+          href={`${process.env.NEXT_PUBLIC_SITE_URL}/rss/feed.json`}
+        />
+```
+
+rel 是用来表示外部文件和本文件的关系
+Alternate representations of the current document.
+
+在stylesheet 中有一个典型应用，即：
+```html
+<link href="simple.css" rel="alternate stylesheet" title="Simple">
+<link href="fancy.css" rel="alternate stylesheet" title="Fancy">
+```
+Go to the View>Page Style submenu and select a different style to watch this page's look change!
+
+只是这个功能仅firefox 支持
+
+但可窥见此alternate 代表两个可互相替换的属性
+
+

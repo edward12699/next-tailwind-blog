@@ -362,6 +362,14 @@ var map = {
 		"./src/pages/articles/introducing-animaginary.mdx",
 		"src_pages_articles_introducing-animaginary_mdx"
 	],
+	"./introducing-to-Cumulative-Layout-Shift(CLS).mdx": [
+		"./src/pages/articles/introducing-to-Cumulative-Layout-Shift(CLS).mdx",
+		"src_pages_articles_introducing-to-Cumulative-Layout-Shift_CLS_mdx"
+	],
+	"./record-two-new-link-types.mdx": [
+		"./src/pages/articles/record-two-new-link-types.mdx",
+		"src_pages_articles_record-two-new-link-types_mdx"
+	],
 	"./rewriting-the-cosmos-kernel-in-rust.mdx": [
 		"./src/pages/articles/rewriting-the-cosmos-kernel-in-rust.mdx",
 		"src_pages_articles_rewriting-the-cosmos-kernel-in-rust_mdx"
@@ -769,6 +777,17 @@ module.exports = require("react/jsx-dev-runtime");
 
 "use strict";
 module.exports = require("react/jsx-runtime");
+
+/***/ }),
+
+/***/ "web-vitals":
+/*!*****************************!*\
+  !*** external "web-vitals" ***!
+  \*****************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = import("web-vitals");;
 
 /***/ }),
 

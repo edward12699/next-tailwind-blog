@@ -30,10 +30,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/articles.js"
     ],
-    "/articles/Introducing-to-mdx": [
+    "/articles/introducing-to-Cumulative-Layout-Shift(CLS)": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/articles/Introducing-to-mdx.js"
+      "static/chunks/pages/articles/introducing-to-Cumulative-Layout-Shift(CLS).js"
     ]
   },
   "ampFirstPages": []
