@@ -1,6 +1,6 @@
 {
   "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/articles/introducing-to-Cumulative-Layout-Shift(CLS)": "pages/articles/introducing-to-Cumulative-Layout-Shift(CLS).js"
+  "/_error": "pages/_error.js",
+  "/articles/deep-into-service-worker": "pages/articles/deep-into-service-worker.js"
 }

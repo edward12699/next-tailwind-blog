@@ -1,0 +1,233 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-26',
+  title: 'introducing-to-Search-Engine(learnt-from-next.js)',
+  description:
+    'introducing-to-Search-Engine(learnt-from-next.js)',
+}
+
+import Image from 'next/future/image'
+import image1 from '@/images/photos/googlebot.png'
+import image2 from '@/images/photos/web-performance-to-seo.png'
+
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+it's mostly recorded from the next.js tutorial, while cause it's a common knowledge 
+so we can use it everywhere
+
+## introducing to Search Systems
+Search Systems have four main responsibilities:
+
+1. Crawling – the process of going through the Web and parsing the content in all websites. This is a massive task as there are over 350 million domains available.
+2. Indexing – finding places to store all of the data gathered during the crawling stage so it can be accessed.
+3. Rendering – executing any resources on the page such as JavaScript that might enhance the features and enrich content on the site. This process doesn't happen for all pages that are crawled and sometimes it happens before the content is actually indexed. Rendering might happen after indexing if there are no available resources to perform the task at the time.
+4. Ranking – querying data to craft relevant results pages based on user input. This is where the different ranking criteria are applied in Search engines to give users the best answer to fulfill their intent.
+
+While there are some differences when it comes to Ranking and Rendering, most search engines work in a very *similar way when it comes to Crawling and Indexing*.
+
+## how a Web Crawlers works (ex. Googlebot from google )
+<Image
+      src={image1}
+      alt=""
+      className=""
+/>
+1. Find URLs: Google sources URLs from many places, including Google Search Console, links between websites, or XML sitemaps.
+2. Add to Crawl Queue: These URLs are added to the Crawl Queue for the Googlebot to process. URLs in the Crawl Queue usually last seconds there, but it can be up to a few days depending on the case, especially if the pages need to be rendered, indexed, or – if the URL is already indexed – refreshed. The pages will then enter the Render Queue.
+3. HTTP Request: The crawler makes an HTTP request to get the headers and acts according to the returned status code:
+200 - it crawls and parses the HTML.
+30X - it follows the redirects.
+40X - it will note the error and not load the HTML
+50X - it may come back later to check if the status code has changed.
+4. Render Queue: The different services and components of the search system process the HTML and parse the content. If the page has some JavaScript client-side based content, the URLs might be added to a Render Queue. Render Queue is more costly for Google as it needs to use more resources to render JavaScript and therefore **URLs rendered are a smaller percentage over the total pages out there on the internet**. Some other search engines might not have the same rendering capacity as Google, and this is where Next.js can help with your rendering strategy.
+5. Ready to be indexed: If all criteria are met, the pages may be eligible to be indexed and shown in search results.
+
+## robots.txt
+it's a communication file telling search engin the crawler can or can't request from your site
+These files **must be served at the root of each host**
+
+## XML Sitemaps
+
+according to google You might need a sitemap if:
+
+>- Your site is really large. As a result, it's more likely Google web crawlers might overlook crawling some of your new or recently updated pages.
+>- Your site has a large archive of content pages that are isolated or not well linked to each other. If your site pages don't naturally reference each other, you can list them in a sitemap to ensure that Google doesn't overlook some of your pages.
+>- Your site is new and **has few external links to it. Googlebot and other web crawlers navigate the web by following links from one page to another.** As a result, Google might not discover your pages if no other sites link to them.
+>- Your site has a lot of rich media content (video, images) or is shown in Google News. If provided, Google can take additional information from sitemaps into account for search, where appropriate.
+
+* need be at the root too
+basic format
+```XML
+//sitemap.xml
+  <xml version="1.0" encoding="UTF-8">
+   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+     <url>
+       <loc>http://www.example.com/foo</loc>
+       <lastmod>2021-06-01</lastmod>
+     </url>
+      <url>
+       <loc>http://www.example.com/foo1</loc>
+       <lastmod>2021-06-02</lastmod>
+     </url>
+   </urlset>
+   </xml>
+```
+
+## Special Meta Tags for Search Engines
+Meta robot tags are directives that search engines will always respect. Adding these robots tags can make the indexation of your website easier.
+ex. `<meta name="googlebot" content="noindex,nofollow" />`
+  * noindex :To not show this page in search results. 
+  * nofollow:  To not follow links on this page
+
+if not defined ,index and follow by default;<br/>
+URLs that are restricted from bots crawling via robots.txt file will never be crawled by Google, but if the rules are added after pages are already indexed, pages might remain indexed. The best way to make sure that a page is not indexed is using the `noindex` tag.<br/>
+also refer to [full robot tags](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag?hl=zh-cn#directives )
+
+## Canonical Tags
+To de-duplicate pages
+
+```html
+<link
+      rel="canonical"
+      href="https://example.com/blog/original-post"
+      key="canonical"
+/>
+```
+
+
+## amp
+
+amp is beneficial for mobile device webs and also for seo
+google giving search ranking preference to web pages using AMP
+
+
+## URL Structure
+URL Structure is an important part of an SEO strategy. While Google doesn't disclose which weight each part of SEO has, great URLs are considered a best practice no matter if they are a big or small ranking factor in the end.
+* Semantic
+* Patterns that are logical and consistent
+* Keyword focused
+* Not parameter-based
+
+## Metadata
+Metadata is the abstract of the website's content and is used to attach a title, a description, and an image to the site.
+
+* title : very important it's one of the main elements Google uses to understand what your page is about. use key words in it 
+* Description: though not included in account for  google's ranking purposes,while it affect the click-through-rate on search results, which will also improve your site ranking indirectly
+put your keywords here ,**These keywords will appear in bold if a user's search contains them.**
+* Structured Data and JSON-LD: Structured data facilitates the understanding of your pages to search engines. Over the years, there have been several vocabularies in place, but currently the main one is schema.org.<br/>
+schema.org provides a set of patterns and attributes for defining and tagging web page content, enabling search engines and other data processing tools to better understand and interpret the meaning of web pages.<br/>
+Schema.org defines a range of terms and attributes that are used to represent various types of entities and concepts, such as people, organizations, events, places, products, reviews, articles, and so on. These terms and attributes can be embedded in the HTML code of a web page to provide more semantic information about the content of the web page.<br/>
+Schema.org supports structured data markup in multiple formats, including Microdata, JSON-LD, and RDFa
+
+demo:
+```js
+import Head from 'next/head';
+
+function ProductPage() {
+  function addProductJsonLd() {
+    return {
+      __html: `{
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": "Executive Anvil",
+      "image": [
+        "https://example.com/photos/1x1/photo.jpg",
+        "https://example.com/photos/4x3/photo.jpg",
+        "https://example.com/photos/16x9/photo.jpg"
+       ],
+      "description": "Sleeker than ACME's Classic Anvil, the Executive Anvil is perfect for the business traveler looking for something to drop from a height.",
+      "sku": "0446310786",
+      "mpn": "925872",
+      "brand": {
+        "@type": "Brand",
+        "name": "ACME"
+      },
+      "review": {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "4",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Fred Benson"
+        }
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.4",
+        "reviewCount": "89"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": "https://example.com/anvil",
+        "priceCurrency": "USD",
+        "price": "119.99",
+        "priceValidUntil": "2020-11-20",
+        "itemCondition": "https://schema.org/UsedCondition",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+  `,
+    };
+  }
+  return (
+    <div>
+      <Head>
+        <title>My Product</title>
+        <meta
+          name="description"
+          content="Super product with free shipping."
+          key="desc"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={addProductJsonLd()}
+          key="product-jsonld"
+        />
+      </Head>
+      <h1>My Product</h1>
+      <p>Super product for sale.</p>
+    </div>
+  );
+}
+
+export default ProductPage;
+```
+
+
+## head and links
+
+1. head illustrate the key information of the page  search engine consider it as important
+use h1 when necessary 
+2. google ranks using PageRank Algorithm.,it means it goes through every link on a database and scores domains based on how many links they receive (quantity) and from which domains (quality)
+so you should always include them both internally between your page, and also externally to other websites. Links always **need to use `href`** in order to be used for PageRank calculations.
+
+
+## web performance
+Web page speed on mobile devices has been a ranking factor since 2018. However, it's not been clear what specific performance metrics the Google Search algorithm uses as part of ranking until now.
+
+This changed in June 2021, when Google provided a set of specific metrics and ranges to analyze and optimize your performance.
+<Image
+ src={image2}
+      alt=""
+      className=""
+/>
+
+## Three Pillars of Optimization
+* Technical – Optimize your website for crawling and web performance.
+* Creation – Create a content strategy to target specific keywords.
+* Popularity – Boost your site's presence online so search engines know you are a trusted source. This is done through the use of backlinks – third-party sites that link back to your site.
+
+
+
+
+
+## Read more
+* [google seo doc](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag?hl=zh-cn#directives)
+* [amp](https://amp.dev/)
+
+

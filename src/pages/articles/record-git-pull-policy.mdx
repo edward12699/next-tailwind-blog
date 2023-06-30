@@ -1,0 +1,30 @@
+
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-30',
+  title: 'record-git-pull-policy',
+  description:
+    'record-git-pull-policy',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+当你执行 `git pull` 时，本地和远程分支之间的可能存在冲突。以下是对这三种选项的解释和建议：
+
+1. `git config pull.rebase false`（合并）：这是默认选项，当你执行 `git pull` 时，如果远程分支比你的本地分支更先进（也就是说，远程分支有新的提交，本地分支没有），Git 将创建一个新的合并提交来结合这两个分支的更改。如果你希望保留一个明确的历史记录，显示何时进行了拉取和合并，那么这可能是一个好选项。
+
+2. `git config pull.rebase true`（变基）：这个选项意味着当你执行 `git pull` 时，Git 将首先找出本地和远程分支的公共祖先，然后将你在本地分支上做的所有提交（自公共祖先以后的提交）临时移除，将远程分支的所有新提交应用到你的本地分支，然后再重新应用你的提交。这将导致一个线性的提交历史，就好像你是在远程分支的最新提交之后做出你的所有更改一样。如果你希望历史记录看起来更干净，更线性，那么这可能是一个好选项。
+
+3. `git config pull.ff only`（仅快进）：这个选项意味着当你执行 `git pull` 时，只有当你的本地分支可以进行 "快进"（也就是说，你的本地分支的提交是远程分支的直接祖先）时，Git 才会更新你的本地分支。这阻止了在拉取时合并或变基，如果你的本地分支有新的提交，这可能会导致 `git pull` 失败。这是最保守的选项，通常只在你需要精确控制合并和冲突解决时才会使用。
+
+ 选择哪个取决于具体需求和工作流程。
+  * 如果和其他人一起在同一个分支上工作，并且希望保持一个线性的，干净的历史记录，
+  那么可能会选择 `git config pull.rebase true`。<br/>
+
+  * 如果不关心历史记录的外观，那么默认的合并选项可能就足够了。<br/>
+
+  * 如果你需要精确控制何时和如何合并更改，那么你可能会选择 `git config pull.ff only`。
+
+

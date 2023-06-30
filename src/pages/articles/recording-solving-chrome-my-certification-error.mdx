@@ -1,0 +1,123 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-28',
+  title: 'recording-solving-chrome-my-certification-error.mdx',
+  description:
+    'recording-solving-chrome-my-certification-error',
+}
+import Image from 'next/future/image'
+import image1 from '@/images/photos/chrome-certification-setting.png'
+import image2 from '@/images/photos/localhost-https-success.png'
+
+
+
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+it happens when i produces my certification with openssl,deploy it and finds 
+chrome still gives my web a 'not secure' tag
+
+let's dig into it.
+
+Two main possibilities
+
+*  the trust process has something wrong 
+
+or
+
+*  the certification has something wrong 
+
+
+## trust process error?
+
+cause i add the certification to system keyChains forehead, and after checking  the chrome with 
+settings of security,  as below:
+<Image
+      src={image1}
+      alt=""
+      className=""
+/>
+
+and it opens the system keyChains,so i know  the trust process is totally right
+
+
+## the certification error?
+
+after browsing some infos here comes the conclusion
+the certification produced before need some improvements
+the code i used before is
+`openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem`
+it's a little too shabby
+
+it is mentioned a valid certification should fulfill:
+1. SAN（Subject Alternative Name）: certification should illustrate the domains it will be applied to
+In the past, the Common Name field of a certificate was used to identify the host or domain name that the certificate represents. However, modern browsers, including Chrome, require certificates to use the Subject Alternative Name (SAN) field to specify the host name or domain name that can use the certificate. 
+2. Key usage: When you create a certificate, you need to specify one or more purposes for the certificate, such as server authentication, client authentication, and so on. If your certificate is not intended for the purpose of the browser, Chrome may refuse to accept it.
+3. incomplete certificate chain: If your certificate is issued by an intermediate certificate, you may need to install this intermediate certificate on the server to form a complete certificate chain. Without the full certificate chain, browsers may not be able to verify the validity of your certificate.
+
+we need improve the 1 and 2 aspects
+
+create a  file named myopenssl.cnf
+```html
+// myopenssl.cnf
+
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+CN = localhost
+
+[v3_req]
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+
+```
+
+* CN : COMMON Name
+* alt_names:  SAN(we have subjectAltName = @alt_names), you can add DNS.2, DNS.2 etc. 
+* keyUsage and extendedKeyUsage: need make it clear it's for digitalSignature 
+
+execute the command
+`openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mydomain.key -out mydomain.crt -config myopenssl.cnf`
+
+it will create two files:  mydomain.key(private key) and mydomain.crt(certification)<br/>
+add the mydomain.crt to system keyChains  or login keyChains (macos)<br/>
+reload the server and the browser<br/>
+now you should see it already success
+
+<Image
+      src={image2}
+      alt=""
+      className=""
+/>
+
+
+
+## PS
+
+different browser have different strategy of trust,though chrome trust from the system keyChains
+firefox fail to trust it 
+so may need introduce the certification to firefox manually
+
+
+
+
+
+
+
+
+
+
+
+
+
+

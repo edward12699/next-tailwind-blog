@@ -1,5 +1,4 @@
 import { ArticleLayout } from '@/components/ArticleLayout'
-import WebVitals from '@/components/WebVitals'
 
 export const meta = {
   author: 'edward',
@@ -15,6 +14,7 @@ import image3 from '@/images/photos/Distance-fraction.png'
 import image4 from '@/images/photos/cls-score.png'
 import image5 from '@/images/photos/multi-cls.png'
 import image6 from '@/images/photos/web-vitals-screenshot.png'
+import image7 from '@/images/photos/fid.png'
 
 
 
@@ -162,4 +162,32 @@ onCLS(console.log);
 ## 拓展阅读
 
 1. Defining the Core Web Vitals metrics thresholds （https://web.dev/i18n/en/defining-core-web-vitals-thresholds/）
-2. Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS). 是3个测量页面性能的指标，同样需要掌握
+2. Largest Contentful Paint (LCP), First Input Delay (FID), and Cumulative Layout Shift (CLS). 是3个测量页面性能的指标，同样需要掌握，此图来自blog/https://blog.csdn.net/c_kite/article/details/104237256
+      
+      tti，它是一个综合指标，包含了fid的部分，也包含了fcp的部分
+      <Image
+            src={image7}
+            alt=""
+            className="fid"
+          />
+
+3. LCP代表"大量内容的绘制"（Largest Contentful Paint），是一项用于衡量网页加载性能的指标。LCP衡量的是从页面开始加载到最大内容元素完全绘制在用户视图中所需的时间。
+    最大内容元素通常是指页面中最大、最显著的可见内容，例如图片、视频、文本块或其他DOM元素。LCP的目标是确保这些重要内容能够尽快绘制出来，以提供更好的用户体验和视觉反馈。
+    较短的LCP时间意味着页面的关键内容能够更快地展示给用户，减少了用户等待的时间。通常，一个优秀的LCP时间应该在1.5秒内。
+    为了改善LCP，可以采取一些优化措施，例如：
+      1. 增加服务器响应速度，确保内容能够快速加载。
+      2. 优化图像大小和格式，减少图像文件的下载时间。
+      3. 延迟加载非关键资源，优先加载与LCP相关的重要内容。
+      4. 最小化渲染阻塞，例如通过异步加载脚本或样式表来避免阻塞主要内容的绘制。
+4. FID代表"首次输入延迟"（First Input Delay），是衡量网页交互性能的指标之一。它用于评估用户首次与页面进行交互时所经历的延迟。
+    FID测量的是从用户首次与页面交互（例如点击按钮、选择下拉菜单）到浏览器实际响应该交互的时间间隔。较短的FID意味着用户能够更快地与页面进行互动，并获得即时的反馈。
+    FID的目标是保持在100毫秒以下，因为在此范围内，用户会感觉到交互是即时的。如果FID超过300毫秒，用户可能会感到延迟，这会影响用户体验。
+    要改善FID，可以采取以下优化措施：
+    1. 减少主线程阻塞：避免JavaScript、样式表或其他资源的长时间执行，以防止阻塞用户交互。
+    2. 延迟加载非关键脚本：将非关键脚本推迟加载，确保主要交互元素能够优先加载。
+    3. 使用Web Worker：将计算密集型任务转移到Web Worker线程，以减少主线程阻塞。
+    4. 压缩和优化JavaScript：减小JavaScript文件大小，优化其性能，提高执行效率。
+
+
+
+

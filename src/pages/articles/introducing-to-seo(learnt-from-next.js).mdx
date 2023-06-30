@@ -1,0 +1,55 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-26',
+  title: 'introducing-to-seo(learnt-from-next.js)',
+  description:
+    'introducing-to-seo(learnt-from-next.js)',
+}
+
+import Image from 'next/future/image'
+import image1 from '@/images/photos/googlebot.png'
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+it's mostly recorded from the next.js tutorial, while cause it's a common knowledge 
+so we can use it everywhere
+
+## what is seo 
+
+Search Engine Optimization
+the method of improving your website's ranking in search results
+
+## introducing to Search Systems
+Search Systems have four main responsibilities:
+
+1. Crawling – the process of going through the Web and parsing the content in all websites. This is a massive task as there are over 350 million domains available.
+2. Indexing – finding places to store all of the data gathered during the crawling stage so it can be accessed.
+3. Rendering – executing any resources on the page such as JavaScript that might enhance the features and enrich content on the site. This process doesn't happen for all pages that are crawled and sometimes it happens before the content is actually indexed. Rendering might happen after indexing if there are no available resources to perform the task at the time.
+4. Ranking – querying data to craft relevant results pages based on user input. This is where the different ranking criteria are applied in Search engines to give users the best answer to fulfill their intent.
+
+While there are some differences when it comes to Ranking and Rendering, most search engines work in a very *similar way when it comes to Crawling and Indexing*.
+
+## how a Web Crawlers works (ex. Googlebot from google )
+<Image
+      src={image1}
+      alt=""
+      className=""
+/>
+1. Find URLs: Google sources URLs from many places, including Google Search Console, links between websites, or XML sitemaps.
+2. Add to Crawl Queue: These URLs are added to the Crawl Queue for the Googlebot to process. URLs in the Crawl Queue usually last seconds there, but it can be up to a few days depending on the case, especially if the pages need to be rendered, indexed, or – if the URL is already indexed – refreshed. The pages will then enter the Render Queue.
+3. HTTP Request: The crawler makes an HTTP request to get the headers and acts according to the returned status code:
+200 - it crawls and parses the HTML.
+30X - it follows the redirects.
+40X - it will note the error and not load the HTML
+50X - it may come back later to check if the status code has changed.
+4. Render Queue: The different services and components of the search system process the HTML and parse the content. If the page has some JavaScript client-side based content, the URLs might be added to a Render Queue. Render Queue is more costly for Google as it needs to use more resources to render JavaScript and therefore **URLs rendered are a smaller percentage over the total pages out there on the internet**. Some other search engines might not have the same rendering capacity as Google, and this is where Next.js can help with your rendering strategy.
+5. Ready to be indexed: If all criteria are met, the pages may be eligible to be indexed and shown in search results.
+
+## Three Pillars of Optimization
+* Technical – Optimize your website for crawling and web performance.
+* Creation – Create a content strategy to target specific keywords.
+* Popularity – Boost your site's presence online so search engines know you are a trusted source. This is done through the use of backlinks – third-party sites that link back to your site.
+
+

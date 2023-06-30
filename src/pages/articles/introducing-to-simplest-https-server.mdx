@@ -1,0 +1,92 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-28',
+  title: 'introducing-to-simplest-https-server',
+  description:
+    'sometimes we wanna have a https server in the local development environment',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+sometimes we wanna have a https server in the local development environment
+we will realize it within node.js 
+
+1. Generate a self-signed SSL certificate for HTTPS connections. we can use the OpenSSL tool to generate a certificate:
+`openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem`
+The preceding command generates a self-signed certificate file - certificate.pem, and a private key file, key.pem, valid for one year.
+
+  * **Notice(important!)**:  you can create more effective certification to pass the validation of browser, refer to my another blog **'recording-solving-chrome-my-certification-error'**, all the following steps are the same except that need to replace the 'certificate.pem'
+    and 'key.pem' with newly created 'mydomain.crt' and 'mydomain.key'
+
+2. Use the built-in HTTPS module
+
+```js
+
+const https = require('https');
+const fs = require('fs');
+
+// SSL 证书文件路径
+const privateKeyPath = 'key.pem';
+const certificatePath = 'certificate.pem';
+
+// 创建 HTTPS 服务器,
+const server = https.createServer({
+  key: fs.readFileSync(privateKeyPath),
+  cert: fs.readFileSync(certificatePath)
+}, (req, res) => {
+  res.writeHead(200);
+  res.end('Hello, HTTPS World!');
+});
+
+const port = 8000;
+
+server.listen(port, () => {
+  console.log(`HTTPS server is running on port ${port}`);
+});
+
+```
+
+
+* If you want to create a static resource server, you can use it with Express
+
+```js
+const express = require('express');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+//这里指定是在public，也可以简单一点直接根目录'/'
+const staticRoot = path.join(__dirname, 'public');
+
+app.use(express.static(staticRoot));
+
+const port = 8000;
+
+const privateKeyPath = 'key.pem';
+const certificatePath = 'certificate.pem';
+const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+const certificate = fs.readFileSync(certificatePath, 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
+const server = https.createServer(credentials, app);
+
+server.listen(port, () => {
+  console.log(`Static resource server is running on port ${port}`);
+});
+
+```
+
+3. make the browser trust your certificate
+
+it depends, you need check for the methods based on your platform
+
+ex. macos:
+ 双击 cert.pem 证书文件，然后选择“钥匙串访问”。在钥匙串访问应用程序中，将证书拖放到“系统”类别下的“钥匙串”列表中。然后，双击证书，展开“信任”部分，选择“始终信任”选项。
+
+
+
+
+

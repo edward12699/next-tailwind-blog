@@ -1,0 +1,139 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-28',
+  title: 'Introducing-to-pwa',
+  description:
+    'paw is an installable, even can published to app stores',
+}
+import Image from 'next/future/image'
+import {CS} from '@/components/mdx-style/ColoredStrong'
+import image1 from '@/images/photos/basic-pwa-success.png'
+import image2 from '@/images/photos/basic-pwa-success-install.png'
+
+
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+paw is an installable, even can published to app stores
+to make a pwa, there are three necessary factors
+  * <CS>manifest</CS>
+  * <CS>HTTPS</CS>
+  * <CS>service worker</CS> 
+
+
+
+## manifest
+
+This file describes how your app looks and behaves, and allows browsers to recognize your website as a PWA
+
+1.  `<link rel="manifest" href="manifest.json" />`
+2. 
+```json
+//manifest.json
+{
+  "name": "My PWA",
+  "icons": [
+    {
+      "src": "icons/bear.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "display": "standalone",
+  "start_url": "https://localhost:8000/"
+}
+```
+
+Chromium-based browsers, including Google Chrome, Samsung Internet, and Microsoft Edge, require that the manifest includes the following members:
+  * name
+  * icons
+  * display
+  * start_url
+
+**they must all be included,lacking of one will result in not installable**
+
+If the PWA has more than one page, every page must reference the manifest in this way.
+
+## https
+
+can refer to my another blog "recording-solving-chrome-my-certification-error"
+,with which can you start a local https  server
+
+## service worker 
+
+with a fetch event handler that **intercept requests** and provides a basic offline experience.
+
+basic demo:
+```js
+//index.html
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch(error => {
+          console.log('Service Worker registration failed:', error);
+        });
+    });
+  }
+</script>
+
+//service-worker.js
+
+// cache name 
+const CACHE_NAME = 'my-cache-v1';
+const urlsToCache = [
+  '/',
+  '/index.html'
+];
+
+// watch install  button clicked
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+// watch fetch ,if cached ,return cache content
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+
+        return fetch(event.request);
+      })
+  );
+});
+
+```
+
+1. First, it defines a cache name CACHE_NAME and a set of URL urlsToCache to cache.  
+2. Next, it listens for the Service Worker's install event. This event fires when the Service Worker is first installed. In the callback function for this event, it opens a cache named CACHE_NAME and then adds all URLs in the urlsToCache to this cache. event.waitUntil() ensures that the service worker waits for the cache operation to complete before proceeding with the installation.  
+3. Finally, it listens for the service worker's fetch event. This event fires when the page initiates a network request. In the callback function for this event, it first tries to match the requested resource from the cache. If it can match, it will directly return the cached resource; Otherwise, it initiates a network request to get the resource.
+
+## if everything is ok, we can see install button now
+<Image
+      src={image1}
+      alt=""
+      className=""
+/>
+<Image
+  src={image2}
+  alt=""
+  className=""
+/>
+
+## add on refers
+1. [manifest](https://developer.mozilla.org/en-US/docs/Web/Manifest)
+2. [push to google store](https://chromeos.dev/en/publish/pwa-in-play)
+

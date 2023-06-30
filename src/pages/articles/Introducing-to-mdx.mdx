@@ -38,3 +38,47 @@ MDX 可以在许多不同的环境中使用，包括但不限于 Gatsby, Next.js
 
 2. `<img src="url-to-image" alt="alt text" />`
 
+
+## 关于强化样式
+
+由于 MDX 支持 JSX，你可以直接在 MDX 中使用内联样式或者引入 CSS 样式表来控制颜色和其他样式属性
+
+1. 直接内联 （不推荐，如果用的是react框架或者其他，有可能会导致渲染报错，且无法复用）
+
+*`<p style={{ color: 'red' }}>This is a paragraph with red color.</p>`*
+
+
+2. 使用components(推荐)
+
+```js
+//ColoredStrong.JSX
+
+import clsx from 'clsx'
+const variantStyles = {
+  primary:
+    'font-semibold text-emerald-500',
+  secondary:
+    'bg-zinc-50 font-medium text-zinc-900   ',
+}
+
+// colored strong
+export function CS({ variant = 'primary', className, href, ...props }) {
+  className = clsx(
+    'inline-flex items-center gap-2 justify-center rounded-md  text-sm outline-offset-2 transition ',
+    variantStyles[variant],
+    className
+  )
+
+  return <span className={className} {...props} ></span>
+}
+```
+
+```js
+// mdx
+import {CS} from '@/components/mdx-style/ColoredStrong'
+<CS>xxx</CS>
+```
+
+
+
+

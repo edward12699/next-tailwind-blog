@@ -1,0 +1,103 @@
+
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-06-30',
+  title: 'deep-into-service-worker',
+  description:
+    'deep-into-service-worker',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+import Image from 'next/future/image'
+import image1 from '@/images/photos/pwa-push.png'
+
+service worker is a necessary part of pwa, in this part ,we will dive into it
+
+## foundation
+1. Normally, an entire website runs in a single thread. This includes the website's own JavaScript, and all the work to render the website's UI.
+2. To run computationally expensive tasks, web workers can be used  in the background
+3. A service worker is a specific type of web worker that's used to implement PWAs.
+4. Like all web workers, a service worker runs in a separate thread to the main JavaScript code. The main code creates the worker, passing in a URL to the worker's script
+5. The main code creates the worker, passing in a URL to the worker's script. 
+6. The worker and the main code can't directly access each other's state, but can communicate by sending each other messages.
+
+
+## if take cache first strategy， we may get stale response
+- how to improve it 
+
+
+## background ability
+
+browsers may stop service workers when they think it is appropriate<br/>
+However, the browser will restart the service worker when an event has happened that it needs to take care of,it looks like the process:
+  * In the main app, register a request for the service worker to perform some operation
+  * At the appropriate time, the service worker will be restarted if necessary, and an event will fire in the service worker's scope
+  * The service worker will perform the operation
+
+
+### background sync (short operations)
+
+
+### background fetch (long operations like downloading)
+
+With background fetch:
+
+  * The request is initiated from the main app UI
+  * Whether or not the main app is open, the browser displays a persistent UI element that notifies the user about the ongoing request, and enables them to cancel it or check its progress
+  * When the request is completed with success or failure, or the user has asked to check the request's progress, then the browser starts the service worker (if necessary) and fires the appropriate event in the service worker's scope.
+
+
+
+
+
+## push 
+
+The Push API enables a PWA to receive messages pushed from the server, whether the app is running or not. When the message is received by the device, the app's service worker is started and handles the message, and a notification is shown to the user
+
+The specification allows for "silent push" in which no notification is shown, but no browsers support this, because of privacy concerns (for example, that push could then be used to track a user's location).<br/>
+* it needs a push service and the info between push service and app server need to be encrypted(so the push service can't read them)  and signed(so the push service knows that the messages are really from your server, and not from someone impersonating your server).
+* The push service is operated by the browser vendor or by a third party, and the app server communicates with it using the HTTP Push protocol.
+* The app server can use a third-party library such as web-push to take care of the protocol details.
+
+
+the process is a little complex:
+  ###  Work prepared in advance:
+    * As a prerequisite, the app server needs to be provisioned with a public/private key pair, Signing messages needs to follow the VAPID specification
+  ### prerequisite knowledge:
+    * ECDH: Elliptic Curve Diffie-Hellman
+    In the ECDH (Elliptic Curve Diffie-Hellman) protocol, each participant generates a pair of public and private keys and sends the public keys to each other. 
+    Each participant then generates a shared secret using the other's public key and their own private key. 
+    This shared secret is the same on both sides, but cannot be deduced from the public key. 
+    This allows both parties to securely exchange keys in a public Internet environment without fear of key interception  
+    This shared secret (or shared secret) is used to encrypt and decrypt information during subsequent communications.
+
+  ### steps:
+    1. the client proxy(mostly the browser) create a new public/private key pair, we call it client public key and client private key pair to distinguish from the app server key pair
+    (this process honestly happens in the step2,while i wanna make it more clear,so put it ahead.)
+    2. the app uses the PushManager.subscribe() method to subscribe to messages from the server, the subscribe method will finish these things:
+      * send *push service* the app server's public key(needed to verify the signature of the app server)
+      * send *app server* the endpoint for the push Service
+      * send *app server* the client public key (need use in the encrypting process)
+    3. app server use its private key and client public key to produce a Shared key, using it to encrypt the payload,
+    The encryption of payload is actually symmetric encryption
+    4. app server sign the encrypted message using its private key, and send it to push service using http push protocol
+    5. push service valid the signature using app server's public key to make sure it's not from someone impersonating your server,
+    if the signature is valid, the push service queues the message for delivery.
+    6. When the device has network connectivity, the push service delivers the encrypted message to the browser
+    7. When the client proxy(mostly browser) receives the encrypted message, it produces the same Shared key using client private key and app server's public key,with which it then decrypts the message.
+    8. The browser starts the service worker if necessary, and fires an event called push in the service worker's global scope. The event handler is passed a PushEvent object, which contains the message data
+    9. In its event handler, the service worker does any processing of the message. As usual, the event handler calls event.waitUntil() to ask the browser to keep the service worker running
+    10. In its event handler, the service worker creates a notification using registration.showNotification().
+    11. If the user clicks the notification or closes it, the notificationclick and notificationclose, respectively, are fired in the service worker's global scope. These enable the app to handle the user's response to the notification.
+
+*the following picture illustrate the process,while ignoring the  ordinal numbers cause they are not  corresponding *
+<Image
+      src={image1}
+      alt=""
+      className=""
+    />
+  
+
+
