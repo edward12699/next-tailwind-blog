@@ -338,11 +338,20 @@ eval("module.exports = __webpack_require__(/*! ./dist/client/link */ \"./node_mo
 
 var map = {
 	"./": [
-		"./src/pages/articles/index.jsx"
+		"./src/pages/articles/index.jsx",
+		"src_pages_articles_index_jsx"
+	],
+	"./Introducing-to-async-promise.mdx": [
+		"./src/pages/articles/Introducing-to-async-promise.mdx",
+		"src_pages_articles_Introducing-to-async-promise_mdx"
 	],
 	"./Introducing-to-mdx.mdx": [
 		"./src/pages/articles/Introducing-to-mdx.mdx",
 		"src_pages_articles_Introducing-to-mdx_mdx"
+	],
+	"./Introducing-to-notification.mdx": [
+		"./src/pages/articles/Introducing-to-notification.mdx",
+		"src_pages_articles_Introducing-to-notification_mdx"
 	],
 	"./Introducing-to-pwa.mdx": [
 		"./src/pages/articles/Introducing-to-pwa.mdx",
@@ -361,10 +370,12 @@ var map = {
 		"src_pages_articles_deep-into-service-worker_mdx"
 	],
 	"./index": [
-		"./src/pages/articles/index.jsx"
+		"./src/pages/articles/index.jsx",
+		"src_pages_articles_index_jsx"
 	],
 	"./index.jsx": [
-		"./src/pages/articles/index.jsx"
+		"./src/pages/articles/index.jsx",
+		"src_pages_articles_index_jsx"
 	],
 	"./introducing-to-Cumulative-Layout-Shift(CLS).mdx": [
 		"./src/pages/articles/introducing-to-Cumulative-Layout-Shift(CLS).mdx",
@@ -417,7 +428,7 @@ function webpackAsyncContext(req) {
 	}
 
 	var ids = map[req], id = ids[0];
-	return Promise.all(ids.slice(1).map(__webpack_require__.e)).then(() => {
+	return __webpack_require__.e(ids[1]).then(() => {
 		return __webpack_require__(id);
 	});
 }

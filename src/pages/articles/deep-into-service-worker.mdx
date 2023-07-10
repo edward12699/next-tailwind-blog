@@ -15,6 +15,9 @@ import image1 from '@/images/photos/pwa-push.png'
 
 service worker is a necessary part of pwa, in this part ,we will dive into it
 
+[check the simplest  demo](https://github.com/edward12699/basic-pwa-demo/tree/extend)<br/>
+[push api](https://github.com/edward12699/basic-pwa-demo/tree/pushApi)
+
 ## foundation
 1. Normally, an entire website runs in a single thread. This includes the website's own JavaScript, and all the work to render the website's UI.
 2. To run computationally expensive tasks, web workers can be used  in the background
@@ -24,8 +27,108 @@ service worker is a necessary part of pwa, in this part ,we will dive into it
 6. The worker and the main code can't directly access each other's state, but can communicate by sending each other messages.
 
 
+## about communicate with the origin page
+The DOM cannot be manipulated directly in a Service Worker because the Service Worker runs in a separate thread and is not in the same context as the page's DOM.  
+
+If you want to influence the display of your page by downloading something, you can consider the following two methods: 
+  * After the downloaded data is received in the Service Worker, store the data in a suitable place, such as IndexedDB or a cache. Then, by reading the stored data in the page's JavaScript and updating the page presentation.  
+  *  Send a message to the page in the service worker, and after receiving the message in the page's JavaScript, perform the corresponding processing to update the page display. You can use the postMessage method to communicate between a service worker and a page.  
+  
+these methods need to be monitored and processed in the JavaScript code of the page. 
+Service Workers can only be used as a background task for data processing and notification, and cannot directly manipulate the presentation of pages.
+
+
+
+## postMessage in service worker
+postMessage used to have two main usages:
+  * between a page and a pop-up that it spawned
+  * between a page and an iframe embedded within it
+it accept three params:
+  * message
+  * targetOrigin 
+  * transfer (A sequence of transferable objects that are transferred with the message,The ownership of these objects is given to the destination side and they are no longer usable on the sending side.)
+
+a basic demo
+```js
+// in origin page http://example.com:8080
+const popup = window.open("http://example.com");
+popup.postMessage("hello there!", "http://example.com");
+
+
+// in example.com:8080's script
+
+window.addEventListener("message", (event) => {
+  // Do we trust the sender of this message? the verification is needed
+  if (event.origin !== "http://example.com:8080") return;
+
+  // event.source is window.opener
+  // event.data is "hello there!"
+  event.source.postMessage(
+    "hi there yourself!  the secret response " + "is: rheeeeet!",
+    event.origin
+  );
+});
+```
+
+the foundation of it can refer to [postMessage mdn](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage)
+
+while we can also use it in service worker for communications to origin page
+
+and there is a few differences,notice that i didn't give it a origin when postMessage
+and we use clients.matchAll() to get the active and within scope  origin page<br/>
+we use self.clients.claim() to causes the worker being activated to immediately take over any clients that are not yet controlled 
+or
+`clients.matchAll({ includeUncontrolled: true, type: 'window' })`
+due to some reasons we may loose control of the origin page
+
+```js
+// service-worker.js
+  const data = { message: 'loaded news from remote' };
+  return self.clients.claim().then(() => { return self.clients.matchAll() }).then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({ type: 'load news', data });
+    });
+  }).then(() => { console.log('News updated') });
+```
+```js
+//main.js
+
+navigator.serviceWorker.addEventListener('message', (event) => {
+  const { type, data } = event.data;
+
+  if (type === 'load news') {
+    console.log(data.message);
+  }
+});
+
+// notice: if main page wanna postMessage to service Worker, can call it after register its service worker
+navigator.serviceWorker.controller.postMessage({action: 'fetchData'});
+```
+
+
+
+## about the lifecycle of service worker
+
+In the service worker lifecycle, both the 'install' event and the 'activate' event are fired before the page loads. That's why the array of clients you see in the 'activate' event is empty. If you want to send a message to the client after the page loads, you may need to use it in the 'refetch' or 'push' event handler.
+  * Downloading
+  * Installing
+  * Waiting   （self.skipWaiting()）
+  * Activating 
+    Once there are no old Service Workers, or if self.skipWaiting() is called, the new Service Worker enters the activation phase. This phase is typically used to complete all administrative work that cannot be done by legacy service workers, such as cleaning up old caches. At this stage, you can listen for the activate event and make some settings in the callback function for that event
+  * Idle waiting for the next event trigger
+  * Terminated
+  * Update  
+    To conserve memory, the browser terminates the Service Worker after it has been idle for a period of time. Then, when a network request needs to be processed or another lifecycle event occurs, the browser restarts the Service Worker.
+  
+
+
+
+
 ## if take cache first strategy， we may get stale response
 - how to improve it 
+
+
+
 
 
 ## background ability
@@ -36,7 +139,7 @@ However, the browser will restart the service worker when an event has happened 
   * At the appropriate time, the service worker will be restarted if necessary, and an event will fire in the service worker's scope
   * The service worker will perform the operation
 
-
+ 
 ### background sync (short operations)
 
 
@@ -50,9 +153,44 @@ With background fetch:
 
 
 
+## several apis corresponding to some situations
+
+1. sync
+
+it fires as soon as the device has network connectivity again
+in practice, the 'sync' fires after a offline start and recover connections, but not when i switch the internet, the browser has its own judges
+,maybe the offline duration
+
+if a service worker doesn't finish handling a sync event in a relatively short time, the browser will stop the service worker. This is an intentional measure to conserve battery life and protect the user's privacy by minimizing the time for which the user's IP address is exposed to the server while the app is in the background.
+
+2. backgroundFetch
+  * The request is initiated from the main app UI
+  * Whether or not the main app is open, the browser displays a persistent UI element that notifies the user about the ongoing request, and enables them to cancel it or check its progress
+  * When the request is completed with success or failure, or the user has asked to check the request's progress, then the browser starts the service worker (if necessary) and fires the appropriate event in the service worker's scope.
+
+3. periodicSync
+When the PWA no longer needs periodic background updates, <br/>
+the PWA should ask the browser to stop generating periodic sync events, by calling the unregister() method of periodicSync:
+
+
+## summary table
+
+| api    | fire condition |  usage      |
+|--------|---------------|-----------|
+| sync   |   As soon as the device has network connectivity, <br/>the sync event fires in the service worker scope           |      Suppose a user composes an email and presses "Send". In a traditional website, they must keep the tab open until the app has sent the email: if they close the tab, or the device loses connectivity, then the message will not be sent.|
+| backgroundFetch    | proactive   |  downloading long-time files    |
+| periodicSync    |  it's up to the browser how often to generate periodic sync events  |  Consider an app that depends on reasonably fresh content, like a news app    |
+
 
 
 ## push 
+
+and in mdn, the most vital  Warning: When implementing PushManager subscriptions, it is vitally important that you protect against CSRF/XSRF issues in your app. See the following articles for more information:
+
+  *   Cross-Site Request Forgery (CSRF) Prevention Cheat Sheet
+  *   Preventing CSRF and XSRF Attacks
+
+please check https://developer.mozilla.org/en-US/docs/Web/API/Push_API
 
 The Push API enables a PWA to receive messages pushed from the server, whether the app is running or not. When the message is received by the device, the app's service worker is started and handles the message, and a notification is shown to the user
 
@@ -77,9 +215,9 @@ the process is a little complex:
     1. the client proxy(mostly the browser) create a new public/private key pair, we call it client public key and client private key pair to distinguish from the app server key pair
     (this process honestly happens in the step2,while i wanna make it more clear,so put it ahead.)
     2. the app uses the PushManager.subscribe() method to subscribe to messages from the server, the subscribe method will finish these things:
-      * send *push service* the app server's public key(needed to verify the signature of the app server)
-      * send *app server* the endpoint for the push Service
-      * send *app server* the client public key (need use in the encrypting process)
+        * send *push service* the app server's public key(needed to verify the signature of the app server)
+        * send *app server* the endpoint for the push Service
+        * send *app server* the client public key (need use in the encrypting process)
     3. app server use its private key and client public key to produce a Shared key, using it to encrypt the payload,
     The encryption of payload is actually symmetric encryption
     4. app server sign the encrypted message using its private key, and send it to push service using http push protocol
@@ -92,12 +230,31 @@ the process is a little complex:
     10. In its event handler, the service worker creates a notification using registration.showNotification().
     11. If the user clicks the notification or closes it, the notificationclick and notificationclose, respectively, are fired in the service worker's global scope. These enable the app to handle the user's response to the notification.
 
-*the following picture illustrate the process,while ignoring the  ordinal numbers cause they are not  corresponding *
+* the following picture illustrate the process,while ignoring the  ordinal numbers cause they are not  corresponding *
 <Image
       src={image1}
       alt=""
       className=""
     />
   
+* The process by which the client generates a public/private key pair is automated in the browser's Push API, when the pushManager.subscribe() method is called to subscribe to push notifications.
 
+
+
+
+## waitUntil
+It can also be used to detect whether that work was successful. In service workers, waitUntil() tells the browser that work is ongoing until the promise settles, and it shouldn't terminate the service worker if it wants that work to complete.
+<br/>it accept a *promise*
+see how it handles a async function
+
+```js
+addEventListener("install", (event) => {
+  const preCache = async () => {
+    const cache = await caches.open("static-v1");
+    return cache.addAll(["/", "/about/", "/static/styles.css"]);
+  };
+  event.waitUntil(preCache());
+});
+
+```
 

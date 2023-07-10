@@ -1,0 +1,54 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-06',
+  title: 'Introducing-to-async-promise',
+  description:
+    'Introducing-to-async-promise',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+## what if promise transfer to a promise
+
+if a  function uses the await keyword internally, it automatically wraps the function body into a Promise object
+```js
+//async
+
+ async () => {
+    const registration = event.registration;
+    const record = await registration.match('./icons/fire-earth-backend-fetch.svg');
+    const response = await record.responseReady
+    await saveRecordToDB(response);
+    event.updateUI({ title: "Finished your download!" });
+  }
+```
+
+to 
+
+```js
+// promise
+
+() => {
+  const registration = event.registration;
+  
+  registration
+    .match('./icons/fire-earth-backend-fetch.svg')
+    .then((record) => {
+      return record.responseReady;
+    })
+    .then((response) => {
+      return saveRecordToDB(response);
+    })
+    .then(() => {
+      event.updateUI({ title: "Finished your download!" });
+    })
+    .catch((error) => {
+      // handle errors
+    });
+};
+
+```
+

@@ -1,0 +1,65 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-04',
+  title: 'Introducing-to-notification',
+  description:
+    'web notification',
+}
+
+import Image from 'next/future/image'
+import image1 from '@/images/photos/notification-reset.png'
+import image2 from '@/images/photos/notification-success.png'
+
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+官方demo 比较清楚了，附上几点说明
+1. 在requestPermission 操作以后，如果用户不选择，而是直接关闭，如此几番后，浏览器不会再次弹出对话框，
+而此时，Notification.requestPermission() 返回的promise的状态也一直保持在了pending ，说明此时一直处于等待用户选择的状态
+此时要改变这种状态，以chrome为例，可以点击地址栏前面的符号，然后重制notification的状态，如图
+
+<Image
+      src={image1}
+      alt=""
+      className=""
+    />
+
+2. 浏览器需要显示通知，除了获得用户的允许以外，还需要系统允许，以macos 为例，需要在通知中打开相应浏览器的通知权限，不然也是无法通知
+，一个简单的校验方式是观察notification的promise 是成功还是失败
+如果成功，但还是没有通知出现，基本就是系统关闭了浏览器的通知权限。如果成，以chrome 为例，通知应该像这样从右侧出现：
+
+<Image
+      src={image2}
+      alt=""
+      className=""
+    />
+
+```js
+function notifyMe() {
+  if (!("Notification" in window)) {
+    // Check if the browser supports notifications
+    alert("This browser does not support desktop notification");
+  } else if (Notification.permission === "granted") {
+    // Check whether notification permissions have already been granted;
+    // if so, create a notification
+    const notification = new Notification("Hi there!");
+    // …
+  } else if (Notification.permission !== "denied") {
+    // We need to ask the user for permission
+    Notification.requestPermission().then((permission) => {
+      // If the user accepts, let's create a notification
+      if (permission === "granted") {
+        const notification = new Notification("Hi there!");
+        // …
+      }
+    });
+  }
+
+  // At last, if the user has denied notifications, and you
+  // want to be respectful there is no need to bother them anymore.
+}
+
+```
