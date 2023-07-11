@@ -8,5 +8,5 @@
     }
   ],
   "display": "standalone",
-  "start_url": "http://localhost:3000/articles"
+  "start_url": "https://next-tailwind-blog-alpha.vercel.app"
 }
