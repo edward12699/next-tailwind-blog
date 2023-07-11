@@ -25,10 +25,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/articles/deep-into-service-worker": [
+    "/articles": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/articles/deep-into-service-worker.js"
+      "static/chunks/pages/articles.js"
     ]
   },
   "ampFirstPages": []

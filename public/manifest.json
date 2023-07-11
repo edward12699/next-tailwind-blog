@@ -1,0 +1,12 @@
+{
+  "name": "My blog",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "type": "image/ico",
+      "sizes": "512x512"
+    }
+  ],
+  "display": "standalone",
+  "start_url": "http://localhost:3000/articles"
+}
