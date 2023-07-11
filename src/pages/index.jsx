@@ -251,7 +251,7 @@ export default function Home({ articles }) {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/articles');
+    // router.replace('/articles');
   }, []);
   return (
     <>
