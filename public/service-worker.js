@@ -1,8 +1,8 @@
 // service-worker.js
 const CACHE_NAME = 'my-cache-v1';
-const path = `${process.env.NEXT_PUBLIC_SITE_URL}`
+// const path = `${NEXT_PUBLIC_SITE_URL}` // error
 const urlsToCache = [
-  '/articles',
+  '/',
   '/main.js'
 ];
 

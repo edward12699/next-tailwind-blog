@@ -40,6 +40,9 @@ export default function Document() {
     <Html className="h-full antialiased" lang="en">
       <Head>
         <script dangerouslySetInnerHTML={{ __html: modeScript }} />
+        <script dangerouslySetInnerHTML={{
+          __html: `window.NEXT_PUBLIC_SITE_URL = "${process.env.NEXT_PUBLIC_SITE_URL}";`,
+        }} />
         {/* <link
           rel="alternate"
           type="application/rss+xml"

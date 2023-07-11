@@ -1,5 +1,4 @@
 // ask for notify
-
 function notifyMe() {
   if (!("Notification" in window)) {
     // Check if the browser supports notifications
@@ -30,7 +29,7 @@ if ('serviceWorker' in navigator) {
   }
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`${process.env.NEXT_PUBLIC_SITE_URL}/main.js`)
+    navigator.serviceWorker.register(`${NEXT_PUBLIC_SITE_URL}/service-worker.js`)
       .then(registration => {
         registerSync()
         console.log('Service Worker registered:');
