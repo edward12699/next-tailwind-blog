@@ -29,7 +29,7 @@ if ('serviceWorker' in navigator) {
   }
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`${NEXT_PUBLIC_SITE_URL}/service-worker.js`)
+    navigator.serviceWorker.register(`./service-worker.js`)
       .then(registration => {
         registerSync()
         console.log('Service Worker registered:');
