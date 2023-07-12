@@ -1,6 +1,7 @@
 import nextMDX from '@next/mdx'
 import remarkGfm from 'remark-gfm'
 import rehypePrism from '@mapbox/rehype-prism'
+import withPWA from 'next-pwa'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -13,6 +14,25 @@ const nextConfig = {
       allowFutureImage: true,
     },
   },
+  pwa: {
+    dest: 'public',
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'google-fonts-webfonts',
+        },
+      },
+      {
+        urlPattern: /\.\/_next\//,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'nextjs',
+        },
+      },
+    ],
+  },
 }
 
 const withMDX = nextMDX({
@@ -23,4 +43,4 @@ const withMDX = nextMDX({
   },
 })
 
-export default withMDX(nextConfig)
+export default withPWA(withMDX(nextConfig))
