@@ -40,6 +40,7 @@ export default function Document() {
     <Html className="h-full antialiased" lang="en">
       <Head>
         <script dangerouslySetInnerHTML={{ __html: modeScript }} />
+        <link rel="manifest" href="/manifest.json" />
         {/* <link
           rel="alternate"
           type="application/rss+xml"

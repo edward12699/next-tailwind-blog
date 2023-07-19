@@ -1,0 +1,97 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-14',
+  title: 'introducing-to-workbox',
+  description:
+    'google s modules for making pwa easier to use',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+please refer to https://developer.chrome.com/docs/workbox/
+
+
+## base
+* workbox-build offers a couple of methods that can generate a service worker that precaches specified assets. 
+* The generateSW method does most of the work out of the box, 
+* the injectManifest method offers more control when necessary
+
+## advance (modules)
+
+* workbox-routing for request matching.
+* workbox-strategies for caching strategies.
+* workbox-precaching for precaching.
+* workbox-expiration for managing caches.
+* workbox-window for registering a service worker and handling updates in the window context.
+
+
+## module list  (workbox modules)
+please check 
+https://developer.chrome.com/docs/workbox/modules/
+
+
+## demo 
+
+please check 
+
+https://github.com/edward12699/basic-pwa-demo/tree/workbox
+
+
+here are some extend explanation about the demo 
+
+
+## about  CacheFirst 
+
+The CacheFirst policy means that the service worker first attempts to fetch resources from the cache. If the resource is not in the cache, it attempts to fetch it from the network. This strategy is useful for resources that do not fluctuate frequently.  However, if your resources have expired, you need to update the cache by updating your Service Worker script. Service workers update the cache by listening for install and activate events. When your service worker file changes and the browser downloads the new version, the new service worker starts a new install event.
+
+
+* open a new cache to save new contents
+```js
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open('my-cache-v2').then(cache => {
+      return cache.addAll([
+        '/my-resource-1',
+        '/my-resource-2',
+        // ... 更多的资源 URL
+      ]);
+    })
+  );
+});
+
+```
+
+* delete outdated contents
+
+```js
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open('my-cache-v2').then(cache => {
+      return cache.addAll([
+        '/my-resource-1',
+        '/my-resource-2',
+        // ... 更多的资源 URL
+      ]);
+    })
+  );
+});
+
+```
+
+Creating a new cache and deleting the old cache after the update is complete, rather than making changes directly on the old cache, is because of the lifecycle of the Service Worker and Browser caches.<br/>
+When the new Service Worker is deployed and the installation begins, the old Service Worker may still be controlling some pages and may be using the old cache. If you immediately change the old cache, this can cause the old service worker to have problems processing these pages, such as trying to get a cache entry that no longer exists. <br/>
+On the other hand, if you open a new cache and add new resources to it, the old service worker can continue to use the old cache until the new service worker takes over and starts using the new cache. During this process, the old service worker can continue to function without interrupting the user's experience due to sudden changes in the cache.<br/>
+In addition, opening a new cache and adding resources to it ensures that all resources have been correctly fetched and added to the cache before new service workers start using it. This prevents new service workers from starting attempts to use the cache before it is fully updated.<br/>
+
+
+
+
+
+
+
+
+
+
