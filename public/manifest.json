@@ -2,9 +2,9 @@
   "name": "My blog",
   "icons": [
     {
-      "src": "/airbnb.svg",
+      "src": "/noodles.svg",
       "type": "image/svg",
-      "sizes": "28x28"
+      "sizes": "144x144"
     }
   ],
   "display": "standalone",
