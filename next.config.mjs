@@ -21,7 +21,7 @@ const pwaConfig = {
   dynamicStartUrlRedirect: true,
   runtimeCaching: [
     {
-      urlPattern: '/',
+      urlPattern: '/articles',
       handler: 'CacheFirst',
       options: {
         cacheName: 'start-url-self',
