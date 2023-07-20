@@ -21,6 +21,24 @@ const pwaConfig = {
   dynamicStartUrlRedirect: true,
   runtimeCaching: [
     {
+      urlPattern: '/',
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'start-url-self',
+        expiration: {
+          maxEntries: 1,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'google-fonts-webfonts',
+      },
+    },
+    {
       urlPattern: /^https:\/\/fonts\.gstatic\.com/,
       handler: 'StaleWhileRevalidate',
       options: {
@@ -46,7 +64,7 @@ const pwaConfig = {
     },
     {
       urlPattern: /\.(?:json|xml|csv)$/i,
-      handler: 'NetworkFirst',
+      handler: 'StaleWhileRevalidate',
       options: {
         cacheName: 'static-data-assets',
         expiration: {

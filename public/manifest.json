@@ -9,7 +9,7 @@
     {
       "src": "/bear.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "700x700"
     }
   ],
   "display": "standalone",
