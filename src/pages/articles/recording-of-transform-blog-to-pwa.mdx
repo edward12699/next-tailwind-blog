@@ -1,0 +1,129 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-21',
+  title: 'recording-of-transform-blog-to-pwa',
+  description:
+    'recording-of-transform-blog-to-pwa.mdx',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+
+## overall
+usding modules next-pwa
+
+it will register sw.js for you by default,so normally you need only config it
+
+```JavaScript
+// next.config.mjs
+import withPWA from 'next-pwa'
+const pwaConfig = {
+  dest: 'public',
+  dynamicStartUrlRedirect: true,
+  runtimeCaching: [
+    {
+      urlPattern: '/articles',
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'start-url-self',
+        expiration: {
+          maxEntries: 1,
+          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+        },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'google-fonts-webfonts',
+      },
+    },
+    {
+      urlPattern: /^https:\/\/fonts\.gstatic\.com/,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'google-fonts-webfonts',
+      },
+    },
+    {
+      urlPattern: /\.\/_next\//,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'nextjs1',
+      },
+    },
+    {
+      urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-image-assets',
+        expiration: {
+          maxAgeSeconds: 24 * 60 * 60 // 24 hours
+        }
+      }
+    },
+    {
+      urlPattern: /\.(?:json|xml|csv)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-data-assets',
+        expiration: {
+          maxEntries: 32,
+          maxAgeSeconds: 24 * 60 * 60 // 24 hours
+        }
+      }
+    },
+  ],
+}
+// you can export 
+export default withPWA(pwaConfig)(nextConfig)
+// in my blog ,i use nextmdx, so its
+const withMDX = nextMDX({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [rehypePrism],
+  },
+})
+
+export default withMDX(withPWA(pwaConfig)(nextConfig))
+```
+nextpwa uses workbox inside, so the config should obey to workbox's rules
+
+## extend instructions - *the problems i meet in the way*
+
+1. manifest has quite strict requirements, ex:
+the icon need be at least 144*144px  and start_url need match the real domain 
+
+can check the info in the broswer's  debugging interface  application > manifest
+
+2. the default policy forces the starturl to NetworkFirst,while there is no valid method to change it,
+  ```JavaScript
+    if (dynamicStartUrl) {
+                  runtimeCaching.unshift({
+                    urlPattern: basePath,
+                    handler: 'NetworkFirst',
+                    options: {
+                      cacheName: 'start-url',
+                      plugins: [
+                      //....
+  ```
+
+
+  but in my blog ,i default redirect the '/' to '/articles'
+  so, it's not the problem **for now**,i make the '/articles' CacheFirst
+
+3. wanna debug ? you can check the module of next-pwa -  index.js
+4. check the cache similarly in the application panel
+
+
+  
+
+
+
+
+
