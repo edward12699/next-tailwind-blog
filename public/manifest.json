@@ -5,11 +5,6 @@
       "src": "/noodles.svg",
       "type": "image/svg",
       "sizes": "144x144"
-    },
-    {
-      "src": "/bear.png",
-      "type": "image/png",
-      "sizes": "700x700"
     }
   ],
   "display": "standalone",
