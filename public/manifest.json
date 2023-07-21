@@ -3,8 +3,7 @@
   "icons": [
     {
       "src": "/noodles.svg",
-      "type": "image/svg",
-      "sizes": "200x200"
+      "sizes": "any"
     }
   ],
   "display": "standalone",
