@@ -1,0 +1,21 @@
+
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-21',
+  title: 'git-uncommon-command',
+  description:
+    'git-uncommon-command',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+
+
+
+## when you wanna change the .gitignore while some files alerady been detected
+
+
+`git rm -r --cached xxx`
