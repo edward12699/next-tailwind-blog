@@ -1,0 +1,120 @@
+
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-27',
+  title: 'thoughts-from-leetcode-97',
+  description:
+    'thoughts-from-leetcode-97',
+}
+import Image from 'next/future/image'
+import image1 from '@/images/photos/interleave.jpg'
+import image2 from '@/images/photos/localhost-https-success.png'
+
+
+
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+## the task Interleaving String
+Given strings s1, s2, and s3, find whether s3 is formed by an interleaving of s1 and s2.
+
+An interleaving of two strings s and t is a configuration where s and t are divided into n and m substrings respectively, such that:
+```
+s = s1 + s2 + ... + sn
+t = t1 + t2 + ... + tm
+|n - m| <= 1
+The interleaving is s1 + t1 + s2 + t2 + s3 + t3 + ... or t1 + s1 + t2 + s2 + t3 + s3 + ...
+Note: a + b is the concatenation of strings a and b.
+```
+
+<Image
+      src={image1}
+      alt=""
+      className=""
+/>
+
+
+## solution
+
+###  to compress the time
+a good algorithm should get rid of the repeat parts,
+the method and the only one is reuse
+what we need handle is how to reuse
+
+and the only way to reuse is record and reuse
+
+* divide  into sub question is the first step
+* then try to record every the result of each sub question and reuse it is the second
+
+if a question is not inevitable of dealing with all sub questions, then …
+if we deal with the question top-to-down, it’s uneasy to reuse the already known results
+but , if reverse, we calculate it from bottom, we build it from bottom, then the tops ones can always reuse the bottom results
+
+the traits of such questions is sub questions
+
+```js
+/**
+ * @param {string} s1
+ * @param {string} s2
+ * @param {string} s3
+ * @return {boolean}
+ */
+var isInterleave = function (s1, s2, s3) {
+  const m = s1.length, n = s2.length, o = s3.length;
+  //   const f = Array.from({ length: n + 1 }, () =>
+  //   Array.from({ length: m + 1 }, () => 0)
+  // );
+  const df = Array.from({ length: m + 1 }, () => {
+    return Array.from({ length: n + 1 }, () => false)
+  })
+  if ((m + n) !== o) return false
+  for (let i = 0; i <= m; i++) {
+    for (let j = 0; j <= n; j++) {
+      if (i === 0 && j === 0) {
+        df[i][j] = true
+      } else {
+        df[i][j] = (i - 1 >= 0 && s3[i + j - 1] === s1[i - 1] && df[i - 1][j]) || (j - 1 >= 0 && s3[i + j - 1] === s2[j - 1] && df[i][j - 1])
+      }
+    }
+  }
+  return df[m][n]
+};
+```
+
+
+### to compress the space
+
+is reuse space
+followed by the method above ,we need store the results
+while we can reuse the space to store,  we don‘t need all the sub results, so as we walk forward, we can abandon all the past result and make use of their space
+
+```js
+/**
+ * @param {string} s1
+ * @param {string} s2
+ * @param {string} s3
+ * @return {boolean}
+ */
+var isInterleave = function (s1, s2, s3) {
+  const m = s1.length, n = s2.length, o = s3.length;
+  //   const f = Array.from({ length: n + 1 }, () =>
+  //   Array.from({ length: m + 1 }, () => 0)
+  // );
+  const df = Array.from({ length: n }, () => false)
+  if ((m + n) !== o) return false
+  for (let i = 0; i <= m; i++) {
+    for (let j = 0; j <= n; j++) {
+      if (i === 0 && j === 0) {
+        df[j] = true
+      } else {
+
+        df[j] = (i - 1 >= 0 && s3[i + j - 1] === s1[i - 1] && df[j]) || (j - 1 >= 0 && s3[i + j - 1] === s2[j - 1] && df[j - 1])
+      }
+    }
+  }
+  return df[n]
+};
+```
+
