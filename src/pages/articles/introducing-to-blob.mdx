@@ -1,0 +1,87 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-31',
+  title: 'introducing-to-blob',
+  description:
+    'introducing-to-blob',
+}
+
+import image2 from '@/images/photos/web-performance-to-seo.png'
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+## characters of blob
+
+1. object
+2. file-like
+3. immutable
+4. raw
+5. can be read as text or binary data,
+6. or converted into a ReadableStream(so its methods can be used for processing the data. )
+7. The File interface inheriting its
+
+
+## constructor
+
+```JS
+Blob()
+```
+
+
+###  Instance properties
+```JS
+Blob.prototype.size (in bytes)
+Blob.prototype.type (MIME type of the data contained in the Blob) (unknown means empty)
+```
+
+
+### Instance methods
+
+```JS
+Blob.prototype.arrayBuffer()
+Blob.prototype.stream()
+Blob.prototype.text()
+```
+
+
+## usage scenarios
+
+Blobs can be used to process :large amounts: of data, such as images, audio, video, and so on. Blobs originally originated from the File API, which is a standard for file operations in web pages
+Blobs provide a way to process large amounts of raw data in the browser, whether it comes from a user's file, a response from a server, or generated in a browser.
+
+* File download: You can use blobs and URL.createObjectURL to create a link that you can download. For example, if you want users to download data generated from the server, you can put the data in a blob and then create a link for users to download.  
+* File uploads: If you need to work with user-uploaded files, you can use the FileReader API to read the files as blobs and then process them further.  
+* Image processing: If you need to process images on the client side, such as cropping, compression, etc., you can read the image file as a blob and then use the Canvas API to process it. 
+* Big data processing: If you need to process large amounts of data in the browser, such as for statistics or analytics, you can use blobs to process and store that data. Because blobs are immutable, you can operate without altering the original data.  
+* Audio/video streams: You can use blobs to process and play audio/video streams. For example, you can use the MediaSource API to concatenate multiple blobs into a continuous media stream.
+
+
+## the reason of using it 
+
+JavaScript itself provides data types such as Number, String, Array, Object, etc., which are great for working with text and structured data, but these data types can be less performant and efficient when working with binary data or large data. That's why blobs and other binary data types (such as ArrayBuffer, TypedArray, DataView, etc.) were introduced into JavaScript. 
+
+1. Memory efficiency: JavaScript's String type uses UTF-16 encoding, and each character occupies at least 2 bytes of memory. Blobs and ArrayBuffers can directly store binary data, making memory use more efficient.
+2. Performance: If you need to work with large data, such as reading and writing files or network data, you can use blobs or ArrayBuffer to manipulate binary data directly, avoiding the additional overhead of converting the data to String or Array.
+3. Data type: JavaScript's Number type can only accurately represent integers up to 53 bits, not integers or binary data larger than 53 bits. ArrayBuffer and DataView can represent a variety of complex binary data types, such as 8-bit integers, 32-bit floating-point numbers, and so on.
+4. Operational flexibility: Blobs and ArrayBuffer provide various ways to manipulate binary data, such as slicing, merging, reading and writing, and so on.
+
+
+
+##  compared to arrayBuffer and stream
+
+### same
+* all used to process binary data
+
+### difference
+* ArrayBuffer is a class that represents a generic, fixed-length buffer of raw binary data. You cannot manipulate  the contents of an ArrayBuffer directly, but you need to read and write through type array objects (such as Int8Array, Uint8Array, Float32Array, etc.) or DataView objects. ArrayBuffer is suitable for scenarios that require low-level, complex binary operations
+* The Stream API provides a mechanism for working with streaming data in the web, and it includes three types of streams: ReadableStream, WritableStream (writable stream), and TransformStream. Stream is a dynamic data structure that allows you to start processing data while it is still coming, without waiting for everything to load. This makes Stream ideal for working with large or real-time data.
+
+### summarise
+|name | 1 | 2| 3| 
+|--|--| -- |--|
+|arrayBuffer | 静态 | 全部数据加载完毕 |  低级别、复杂操作 | 
+| stream |   动态 | 数据流入时  |  高级别、简单操作｜
+| blob |静态  | 全部数据加载完毕 | 高级别、简单操作 |

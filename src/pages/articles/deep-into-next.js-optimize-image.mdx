@@ -1,0 +1,332 @@
+
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-08-20',
+  title: 'deep-into-next.js-optimize-image',
+  description:
+    'next.js take many optimism of image, have deep look into its source code to find out how it is down',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+import Image from 'next/future/image'
+
+
+## list of optimism
+
+1. Auto-responsive: Based on the client's device size and resolution, the Image component can automatically select the most appropriate image size to ensure that the size of the image downloaded by the user is optimal
+2. Lazy loading: The Image component defaults to the native loading="lazy" attribute, which means that the image will only start downloading when it enters or is about to enter the viewport.
+3. Optimized image formats: Next.js has a built-in image optimizer that converts images to more efficient formats like WebP (when supported by browsers).
+4. Caching: Next.js's image optimizer caches optimized images to reduce unnecessary image processing and speed up subsequent image loading.
+5. Placeholders: The Image component allows you to use placeholders, such as a blurry image, until the actual image is loaded.
+6. Custom loader: If you don't want to use Next.js's built-in image optimizer, you can configure your own image loader, such as connecting to an external image optimization service.
+7. Auto crop and resize: When used with the width and height properties, Next.js can automatically crop and resize images.
+8. Device pixel ratio (DPR) adjustment: The Image component automatically considers the pixel ratio of the device to provide sharper images for high-resolution devices.
+9. Set priority: You can prioritize certain images so that they start loading earlier.
+
+
+
+## `<Image>` source location
+
+* packages/next/src/client/image-component.tsx
+* packages/next/src/shared/lib/get-img-props.ts
+* packages/next/src/server/image-optimizer.ts
+## list and demostration of its optimism, order correspond to the list up
+
+1.  Auto-responsive: 
+
+and 
+
+8. Device pixel ratio:<br/>
+
+mainly uses srcSet:
+```js
+// image-component
+ return (
+      <img
+      // ...
+      srcSet={srcSet}
+      />)
+
+```
+how to get  srcSet?<br/>
+use getWidths to get Widths and give it to `srcSet: widths`
+```js
+//get-img-props.ts
+
+function getWidths(
+  { deviceSizes, allSizes }: ImageConfig,
+  width: number | undefined,
+  sizes: string | undefined
+): { widths: number[]; kind: 'w' | 'x' } {
+  if (sizes) {
+    // Find all the "vw" percent sizes used in the sizes prop
+    const viewportWidthRe = /(^|\s)(1?\d?\d)vw/g
+    const percentSizes = []
+    for (let match; (match = viewportWidthRe.exec(sizes)); match) {
+      percentSizes.push(parseInt(match[2]))
+    }
+    if (percentSizes.length) {
+      const smallestRatio = Math.min(...percentSizes) * 0.01
+      return {
+        widths: allSizes.filter((s) => s >= deviceSizes[0] * smallestRatio),
+        kind: 'w',
+      }
+    }
+    return { widths: allSizes, kind: 'w' }
+  }
+  if (typeof width !== 'number') {
+    return { widths: deviceSizes, kind: 'w' }
+  }
+
+  const widths = [
+    ...new Set(
+      // > This means that most OLED screens that say they are 3x resolution,
+      // > are actually 3x in the green color, but only 1.5x in the red and
+      // > blue colors. Showing a 3x resolution image in the app vs a 2x
+      // > resolution image will be visually the same, though the 3x image
+      // > takes significantly more data. Even true 3x resolution screens are
+      // > wasteful as the human eye cannot see that level of detail without
+      // > something like a magnifying glass.
+      // https://blog.twitter.com/engineering/en_us/topics/infrastructure/2019/capping-image-fidelity-on-ultra-high-resolution-devices.html
+      [width, width * 2 /*, width * 3*/].map(
+        (w) => allSizes.find((p) => p >= w) || allSizes[allSizes.length - 1]
+      )
+    ),
+  ]
+  return { widths, kind: 'x' }
+}
+
+// .....
+  return {
+    sizes: !sizes && kind === 'w' ? '100vw' : sizes,
+    srcSet: widths
+      .map(
+        (w, i) =>
+          `${loader({ config, src, quality, width: w })} ${kind === 'w' ? w : i + 1
+          }${kind}`
+      )
+      .join(', '),
+
+```
+2. Lazy loading:
+also explain why loading should be before src
+and modern broswer all support loading 
+```js
+// image-component
+      <img
+        {...rest}
+        {...getDynamicProps(fetchPriority)}
+        // It's intended to keep `loading` before `src` because React updates
+        // props in order which causes Safari/Firefox to not lazy load properly.
+        // See https://github.com/facebook/react/issues/25883
+        loading={loading}
+/>
+```
+loading is caculated from 
+```js
+// get-img-props
+  let isLazy =
+    !priority && (loading === 'lazy' || typeof loading === 'undefined')
+  if (!src || src.startsWith('data:') || src.startsWith('blob:')) {
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs
+    unoptimized = true
+    isLazy = false
+  }
+```
+3. Optimized image formats 
+
+and 
+
+4. Caching
+this process happens in server side 
+    1.  getSupportedMimeType it's used to vertify which image can be accepted by brosweer
+    2. ImageOptimizerCache   Defines a class for image caching that provides methods to get pictures from the cache and set pictures to the cache.
+    3. optimizeImage: use sharp or Squoosh  to transform and optimize image 
+    4. sendResponse: send optimized image to broswer
+```js
+//packages/next/src/server/image-optimizer.ts
+
+function getSupportedMimeType(options: string[], accept = ''): string {
+  const mimeType = mediaType(accept, options)
+  return accept.includes(mimeType) ? mimeType : ''
+}
+
+export class ImageOptimizerCache {
+  private cacheDir: string
+  private nextConfig: NextConfigComplete
+  // ...
+}
+
+export async function optimizeImage({
+  buffer,
+  contentType,
+  quality,
+  width,
+  height,
+  nextConfigOutput,
+}: {
+  // ...
+}
+
+export function sendResponse(){
+  // ....
+}
+```
+
+5. Placeholders
+  1. use blurComplete to control the blur image show 
+  2.  if blurComplete is false and placeholder is set, show the placeholder background image
+```js
+// image-component
+const [blurComplete, setBlurComplete] = useState(false)
+function handleLoading(
+  img: ImgElementWithDataProp,
+  placeholder: PlaceholderValue,
+  onLoadRef: React.MutableRefObject<OnLoad | undefined>,
+  onLoadingCompleteRef: React.MutableRefObject<OnLoadingComplete | undefined>,
+  setBlurComplete: (b: boolean) => void,
+  unoptimized: boolean
+) {
+  // ... 
+      if (placeholder !== 'empty') {
+      setBlurComplete(true)
+    }
+    //...
+}
+```
+
+
+
+```js
+// get-img-props
+  const backgroundImage =
+    !blurComplete && placeholder !== 'empty'
+      ? placeholder === 'blur'
+        ? `url("data:image/svg+xml;charset=utf-8,${getImageBlurSvg({
+          widthInt,
+          heightInt,
+          blurWidth,
+          blurHeight,
+          blurDataURL: blurDataURL || '', // assume not undefined
+          objectFit: imgStyle.objectFit,
+        })}")`
+        : `url("${placeholder}")` // assume `data:image/`
+      : null
+
+  let placeholderStyle = backgroundImage
+    ? {
+      backgroundSize: imgStyle.objectFit || 'cover',
+      backgroundPosition: imgStyle.objectPosition || '50% 50%',
+      backgroundRepeat: 'no-repeat',
+      backgroundImage,
+    }
+    : {}
+
+```
+6. Custom  loader
+```js
+// get-img-props
+// use custom loader to define many things,like urlstr
+      const urlStr = loader({
+        config,
+        src,
+        width: widthInt || 400,
+        quality: qualityInt || 75,
+      })
+// or src
+  return {
+    sizes: !sizes && kind === 'w' ? '100vw' : sizes,
+    srcSet: widths
+      .map(
+        (w, i) =>
+          `${loader({ config, src, quality, width: w })} ${kind === 'w' ? w : i + 1
+          }${kind}`
+      )
+      .join(', '),
+
+    // It's intended to keep `src` the last attribute because React updates
+    // attributes in order. If we keep `src` the first one, Safari will
+    // immediately start to fetch `src`, before `sizes` and `srcSet` are even
+    // updated by React. That causes multiple unnecessary requests if `srcSet`
+    // and `sizes` are defined.
+    // This bug cannot be reproduced in Chrome or Firefox.
+    src: loader({ config, src, quality, width: widths[last] }),
+  }
+
+```
+7. Auto crop and resize
+```js
+// image-optimizer.ts
+// optimizeImage
+ if (sharp) {
+    // Begin sharp transformation logic
+    const transformer = sharp(buffer, {
+      sequentialRead: true,
+    })
+
+    transformer.rotate()
+
+    if (height) {
+      transformer.resize(width, height)
+    } else {
+      transformer.resize(width, undefined, {
+        withoutEnlargement: true,
+      })
+    }
+```
+9. Set priority
+* judge on priority to preload
+```js
+// <Image>
+ {imgMeta.priority ? (
+          <ImagePreload
+            isAppRouter={isAppRouter}
+            imgAttributes={imgAttributes}
+          />
+        ) : null
+```
+* if in client and support react 18's preload, use preload
+* if not, fall back to traction method(preload is not so widely support by broswer)
+```js
+//  ImagePreload 
+if (isAppRouter && preload) {
+    preload(
+      imgAttributes.src,
+      // @ts-expect-error TODO: upgrade to `@types/react-dom@18.3.x`
+      opts
+    )
+    return null
+  }
+
+  return (
+    <Head>
+      <link
+        key={
+          '__nimg-' +
+          imgAttributes.src +
+          imgAttributes.srcSet +
+          imgAttributes.sizes
+        }
+        rel="preload"
+        // Note how we omit the `href` attribute, as it would only be relevant
+        // for browsers that do not support `imagesrcset`, and in those cases
+        // it would cause the incorrect image to be preloaded.
+        //
+        // https://html.spec.whatwg.org/multipage/semantics.html#attr-link-imagesrcset
+        href={imgAttributes.srcSet ? undefined : imgAttributes.src}
+        {...opts}
+      />
+    </Head>
+  )
+````
+* isAppRouter : judge render environment, true represent render in _app.js or _document.js, false represent in a specific page
+ we judge it in case it's not in the clinet, cause _app.js can render in client ,server and static, while _document.js only render in server
+* imagesrcset: in broswer support imagesrcset,we use imagesrcset, for others, use href to load default size image,imagesrcset is a property We can use to specify different image resources for different viewports and device pixel ratios. The browser will select the most suitable resource to preload.
+
+
+
+
+
+

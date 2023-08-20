@@ -1,0 +1,74 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-07-31',
+  title: 'introducing-to-arraybuffer-and-dataview',
+  description:
+    'introducing-to-arraybuffer-and-dataview',
+}
+import Image from 'next/future/image'
+import image1 from '@/images/photos/arraybuffer.png'
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+ArrayBuffer is more useful when dealing with lower-level binary data, which provides a mechanism for directly manipulating binary data. For example, if you are dealing with a piece of binary data and need to directly access and manipulate this data (such as modifying specific bytes), then using an ArrayBuffer is a good choice.
+
+Here's a practical example: Suppose you're developing an online game that communicates with a server via the WebSocket protocol. To save bandwidth and improve performance, you may choose to encode and decode game data using a binary data format such as Protobuf. In this case, you need to use ArrayBuffer to handle these binary data.
+
+```JS
+let socket = new WebSocket('wss://example.com/game');
+
+socket.binaryType = 'arraybuffer';  // 设置 binaryType 为 'arraybuffer'
+
+socket.onmessage = function(event) {
+  let buffer = event.data;  // 获取 ArrayBuffer
+  let view = new DataView(buffer);  // 创建 DataView
+
+  // 读取数据
+  let playerId = view.getUint32(0);
+  let x = view.getFloat64(4);
+  let y = view.getFloat64(12);
+
+  console.log('Player ' + playerId + ' is at (' + x + ', ' + y + ')');
+};
+
+```
+
+ In this example, when we receive a message from WebSocket, we convert the data of the message (i.e. binary data) into ArrayBuffer, and then use DataView to read the data. Since we know the format of the data (for example, the first 4 bytes are the player's ID, the next 8 bytes are the x coordinate, and the next 8 bytes are the y coordinate), we can use the DataView's `getUint32` and `getFloat64` method to read specific bytes. 
+ 
+  This is a typical scenario where ArrayBuffer is needed, since we need to deal directly with binary data. In this scenario, the Blob object cannot meet our needs, because the Blob object does not provide a method for directly manipulating binary data.
+
+
+
+## DataView
+
+### constructor
+```JS
+new DataView(buffer, byteOffset, byteLength)
+const buffer = new ArrayBuffer(16);
+const view = new DataView(buffer, 0);
+view.setInt16(1, 42);
+view.setInt16(0, 42);
+```
+we can use chrome debugger to help us understand it  (debugging in browser)
+<Image
+      src={image1}
+      alt=""
+      className=""
+    />
+
+1. we create an arraybuffer of 16 bytes 
+2. every byte has 8 bits,  4bits can count up to 32,  so it uses two 32 to represent the value of each byte
+3. `2 * 32 +  A(10) = 42`
+4. the right panel counts the value using different bits, start from a sure offset
+5. here we use setInt16 , so it uses 16bits ,means we will change two blocks each time
+6. it also has setInt8. so we will only change one block each time 
+7. more methods refer to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
+
+
+
+## Ps
+
+1. 1 bytes = 8 bits

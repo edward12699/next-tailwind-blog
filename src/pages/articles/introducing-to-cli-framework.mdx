@@ -1,0 +1,80 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-08-10',
+  title: 'introducing-to-cli-framework',
+  description:
+    'introducing-to-cli-framework',
+}
+
+import image2 from '@/images/photos/web-performance-to-seo.png'
+import Image from 'next/future/image'
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+
+## popular cli framework
+
+1. Commander.js:
+
+* 为什么选择:非常流行和成熟，有丰富的文档和社区支持。
+* 适合:从简单到复杂的各种CLI项目。
+* 缺点：虽然功能强大，但某些高级自定义可能需要更多的工作。
+* 限制：对于非常复杂的子命令和参数解析逻辑，可能需要更多的手动配置。
+2. Yargs:
+
+* 为什么选择:提供了灵活的自定义选项和强大的参数解析。
+* 适合:需要高度自定义和复杂参数处理的项目。
+* 缺点:API可能显得有些复杂,特别是对于新手。
+* 限制：虽然灵活，但可能需要更多的时间来学习和配置所有可用选项。
+3. Oclif (Open CLI Framework):
+
+* 为什么选择:由Heroku支持,适合构建大型、模块化的CLI工具。
+* 适合:大型企业级项目，或需要插件体系结构的项目。
+* 缺点：相对较重，可能包括不需要的功能。
+* 限制:可能不适合非常轻量级或简单的CLI项目。
+4. Clipanion:
+
+* 为什么选择:提供了类型安全和现代的API设计。
+* 适合:使用TypeScript的项目,或者希望有更现代API的项目。
+* 缺点：相对较新，可能没有像其他库那样广泛的社区支持和插件生态系统。
+* 限制:某些设计决策可能不适合所有项目,例如强类型可能不适合不使用TypeScript的项目。
+
+综上， 如果是新入门, 还是建议commonder.js 
+
+refer to https://github.com/tj/commander.js/blob/master/Readme.md
+
+it's quite easy easy to understand
+1. `npm install commander`
+2. 
+```js
+const { program } = require('commander');
+
+program
+  .option('--first')
+  .option('-s, --separator <char>');
+
+program.parse();
+
+const options = program.opts();
+const limit = options.first ? 1 : undefined;
+console.log(program.args[0].split(options.separator, limit));
+```
+3. usage
+```bash
+$ node split.js -s / --fits a/b/c
+error: unknown option '--fits'
+(Did you mean --first?)
+$ node split.js -s / --first a/b/c
+[ 'a' ]
+```
+
+
+## ps 
+when using ,still needs `node split.js <command> <options>  `
+if only we can register it into global 
+
+
+
+
