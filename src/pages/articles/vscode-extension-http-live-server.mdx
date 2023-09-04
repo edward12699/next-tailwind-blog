@@ -1,0 +1,188 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'edward',
+  date: '2023-09-3',
+  title: 'write a vscode extension of http live server',
+  description:
+    'write a vscode extension of http live server',
+}
+import Image from 'next/future/image'
+import image1 from '@/images/photos/arraybuffer.png'
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+http live server is an vscode extension which can one-click  to hold  an website
+
+let's dig how to realise it ourselves
+
+
+## base functions 
+1. create a base hold server
+2. use websocket to watch file changes to reload
+
+
+
+
+## install yo and generator-code
+yo is an  scaffold to create different styled code template
+
+`npm install -g yo generator-code`
+
+## build new vscode project
+`yo code`
+
+choose extension(typescript)
+
+## src/extension.ts
+it's what we mainly need to foucus
+in its active function, we register our command
+let's have a quick look
+
+
+## watch file change
+to implement , we need inject some script to origin code,
+
+so we can not use app.static 
+instead should send a temple code instead
+
+* wating to injected script 
+uses websocket to listen to  the message
+```js
+    const injectedScript = `<script>
+    var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+    var address = protocol + window.location.host + window.location.pathname + '/ws';
+    var socket = new WebSocket(address);
+    socket.onmessage = function (msg) {
+      if (msg.data == 'reload') window.location.reload();
+      else if (msg.data == 'refreshcss') refreshCSS();
+    };
+  </script>`;
+
+```
+
+* read html and inject 
+```js
+ fs.readFile(path.join(vscode.workspace.rootPath || '', 'index.html'), 'utf8', (err, data) => {
+        if (err) {
+          console.error(`Error reading the file: ${err}`);
+          return;
+        }
+        modifiedData = data.replace('</body>', `${injectedScript}\n</body>`);
+        //...
+ })
+        app.get('/', (req, res) => {
+          res.send(modifiedData);
+        });   
+```
+
+
+* deal with js and css files
+because we use res.send to deal with the html ,we need send js and css too
+
+we need add their MIME type ,use cheerrio to help us
+```js
+const cheerio = require('cheerio');
+ fs.readFile(path.join(vscode.workspace.rootPath || '', 'index.html'), 'utf8', (err, data) => {
+        if (err) {
+          console.error(`Error reading the file: ${err}`);
+          return;
+        }
+        const $ = cheerio.load(data);
+        // 提取CSS和JS链接
+        const cssLinks = [];
+        const jsLinks = [];
+        $('link[rel="stylesheet"]').each((i, element) => {
+          cssLinks.push($(element).attr('href'));
+        });
+
+        $('script[src]').each((i, element) => {
+          jsLinks.push($(element).attr('src'));
+        });
+
+        //add mime
+        cssLinks.forEach((link, index) => {
+          app.get('/' + link, (req, res) => {
+            res.setHeader('Content-Type', 'text/css');
+            res.sendFile(path.join(vscode.workspace.rootPath || '', link));
+          });
+        });
+
+        jsLinks.forEach((link, index) => {
+          app.get('/' + link, (req, res) => {
+            res.setHeader('Content-Type', 'application/javascript');
+            res.sendFile(path.join(vscode.workspace.rootPath || '', link));
+          });
+        });
+ })
+
+```
+
+* use websocket to inspect file change
+
+```js
+const WebSocket = require('ws');
+    const wss = new WebSocket.Server({ server });
+        wss.on('connection', (ws) => {
+      console.log('New client connected');
+
+      // 监听文件变更
+      fs.watch(path.join(vscode.workspace.rootPath || '', 'index.html'), (event, filename) => {
+        if (filename) {
+          fs.readFile(path.join(vscode.workspace.rootPath || '', 'index.html'), 'utf8', (err, data) => {
+            if (err) {
+              console.error(`Error reading the file: ${err}`);
+              return;
+            }
+            modifiedData = data.replace('</body>', `${injectedScript}\n</body>`);
+            ws.send('reload');
+          });
+        }
+      });
+
+ws.on('close', () => {
+  console.log('Client disconnected');
+});
+```
+
+* finally ,start the server and listen to a port
+
+```js
+    server.listen(7000, () => {
+      console.log('Server listening on port 7000');
+    });
+```
+
+## check package.json
+
+for example 
+if it's as follows
+```js
+     {
+        "command": "http-live-server.launch",
+        "title": "Hello World1"
+      }
+```
+the register command is "Hello World1",it's response to the code 
+```js
+ let disposable = vscode.commands.registerCommand('http-live-server.launch', () => {
+ })
+```
+
+
+## debug the extension 
+if using yo to help to build the repo,we already have a .vscode folder and configed file.
+
+only need to press debug and it will open a new vscode window
+
+press f1,and type into "Hello World1" from your package.json
+
+it will connect with our code, so you can debug now
+
+you can import a html file to the new window to debug
+
+
+## the code is uploaded to github("https://github.com/edward12699/vscode-extension-http-live-server")
+
+
+
